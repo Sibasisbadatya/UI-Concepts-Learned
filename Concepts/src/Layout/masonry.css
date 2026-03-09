@@ -1,0 +1,13 @@
+/* 
+masonry layout
+masonry item
+media query
+*/
+
+.App{
+    padding: 10px;
+}
+
+.masonry-layout{
+    column-gap: 1em;
+}

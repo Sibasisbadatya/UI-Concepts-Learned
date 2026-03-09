@@ -10,70 +10,81 @@ module.exports = {
     //loaders
     module: {
         rules: [
+            // CSS Modules
             {
-                test: /\.css/,
+                test: /\.module\.css$/,
                 use: [
-                    'style-loader',
+                    "style-loader",
                     {
                         loader: "css-loader",
                         options: {
-                            modules: true
+                            modules: true,
+                            esModule: true
                         }
-                    },
-                    // 'css-loader'
+                    }
                 ]
-                // use array runs from bottom to top
-                // css-loader Runs (First)
-                // 1.Loaders run bottom → up, so: css-loader runs first
-                // 2.Reads the CSS
-                // Sees .button
-                // 3.Because modules: true, it:
-                // Renames class to something unique
-                // .button__x7a92
-                // 4.Converts CSS into JavaScript
+            },
 
-                // 5.Exports this object:
-                // {
-                //   button: "button__x7a92"
-                // }
-                // Now your styles variable becomes:
-                // styles.button === "button__x7a92"
+            // Normal Global CSS
+            {
+                test: /\.css$/,
+                exclude: /\.module\.css$/,
+                use: [
+                    "style-loader",
+                    "css-loader"
+                ]
+            },
+            // use array runs from bottom to top
+            // css-loader Runs (First)
+            // 1.Loaders run bottom → up, so: css-loader runs first
+            // 2.Reads the CSS
+            // Sees .button
+            // 3.Because modules: true, it:
+            // Renames class to something unique
+            // .button__x7a92
+            // 4.Converts CSS into JavaScript
+
+            // 5.Exports this object:
+            // {
+            //   button: "button__x7a92"
+            // }
+            // Now your styles variable becomes:
+            // styles.button === "button__x7a92"
 
 
-                // style-loader Runs
+            // style-loader Runs
 
-                // Now style-loader runs.
-                // It:
-                // Takes the processed CSS
-                // Creates a <style> tag
-                // Injects it into your HTML
-                // <style>
-                // .button__x7a92 {
-                //   color: red;
-                // }
-                // </style>
+            // Now style-loader runs.
+            // It:
+            // Takes the processed CSS
+            // Creates a <style> tag
+            // Injects it into your HTML
+            // <style>
+            // .button__x7a92 {
+            //   color: red;
+            // }
+            // </style>
 
-                // You import CSS
-                //       ↓
-                // Webpack sees .module.css
-                //       ↓
-                // css-loader makes class names unique
-                //       ↓
-                // style-loader injects CSS into page
-                //       ↓
-                // Browser applies styles
+            // You import CSS
+            //       ↓
+            // Webpack sees .module.css
+            //       ↓
+            // css-loader makes class names unique
+            //       ↓
+            // style-loader injects CSS into page
+            //       ↓
+            // Browser applies styles
 
-                // ***********************************
+            // ***********************************
 
-                // Why This Is Powerful
-                // Without CSS Modules:
-                // All classes are global
-                // Naming conflicts happen
-                // With CSS Modules:
-                // Each file has private styles
-                // No conflict
-                // Safer for big apps
-            }
+            // Why This Is Powerful
+            // Without CSS Modules:
+            // All classes are global
+            // Naming conflicts happen
+            // With CSS Modules:
+            // Each file has private styles
+            // No conflict
+            // Safer for big apps
         ]
     },
     // Normally, browsers don’t understand importing CSS inside JS.

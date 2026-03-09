@@ -1,0 +1,205 @@
+WEBPACK is case-sensitive so while importing file make sure to import ./fileName.jsx(extension name) not only /filename .
+
+
+and remove imports from vite like ./vite/logo coz webpack dont have access to vite.
+
+BABEL PACKAGES NOTES
+1. Introduction to Babel
+------------------------------------
+Babel is a JavaScript compiler (transpiler) that converts modern JavaScript and JSX into older JavaScript versions so that it can run in older browsers.
+Modern JavaScript:
+const add = (a, b) => a + b;
+
+Babel converts it into:
+var add = function(a, b) {
+  return a + b;
+};
+Babel ensures compatibility across different browsers.
+
+2. @babel/core
+--------------------------------
+@babel/core is the main engine of Babel.
+It performs the actual transformation of code.
+
+Responsibilities:
+
+Parses JavaScript code into an Abstract Syntax Tree (AST)
+Applies plugins and presets
+Generates transformed JavaScript code
+
+Flow:
+Source Code
+    ↓
+@babel/core
+    ↓
+Transformed JavaScript
+
+3. @babel/preset-env
+-------------------------
+@babel/preset-env is a preset that automatically converts modern JavaScript features into code compatible with target browsers.
+Instead of manually installing many plugins, this preset selects the required transformations automatically.
+Example transformation:
+
+Modern JavaScript:
+const square = (n) => n * n;
+
+Converted JavaScript:
+var square = function(n) {
+  return n * n;
+};
+
+Features:
+
+Automatically determines necessary transformations
+Supports latest ECMAScript features
+Works with browser compatibility targets
+
+4. @babel/preset-react
+-----------------------------------
+@babel/preset-react allows Babel to understand and transform JSX syntax used in React.
+Browsers cannot understand JSX directly.
+
+Example JSX:
+const element = <h1>Hello</h1>;
+
+Babel converts it into:
+const element = React.createElement("h1", null, "Hello");
+
+This preset enables:
+
+JSX transformation
+React-specific optimizations
+
+5. @babel/plugin-transform-runtime
+--------------------------------------
+@babel/plugin-transform-runtime helps reduce duplicated helper functions and improves bundle size.
+When Babel transpiles code, it sometimes adds helper functions like _extends, _classCallCheck, etc.
+
+Without this plugin:
+These helpers may be duplicated in multiple files.
+
+With this plugin:
+Helpers are reused from a shared runtime library.
+
+Benefits:
+
+Smaller bundle size
+Avoids duplication of helper functions
+Cleaner compiled output
+
+Example problem without plugin:
+function _extends() { ... }
+function _extends() { ... }
+
+Solution with plugin:
+import _extends from "@babel/runtime/helpers/extends";
+
+
+6. babel-loader
+-------------------------------------
+babel-loader connects Babel with Webpack.
+Webpack processes modules, but it cannot transform modern JavaScript(js or jsx) by itself.
+babel-loader allows Webpack to use Babel for transformation.
+
+Source JS/JSX
+      ↓
+Webpack
+      ↓
+babel-loader
+      ↓
+Babel (@babel/core)
+      ↓
+Transpiled JavaScript
+
+
+
+| Package                         | Purpose                                             |
+| ------------------------------- | --------------------------------------------------- |
+| @babel/core                     | Main Babel engine                                   |
+| @babel/preset-env               | Converts modern JavaScript to compatible JavaScript |
+| @babel/preset-react             | Converts JSX into JavaScript                        |
+| @babel/plugin-transform-runtime | Reduces duplicate helper code                       |
+| babel-loader                    | Connects Babel with Webpack                         |
+
+
+
+
+
+
+--------------------------- USE ----------------------------------------------------
+
+
+            use array runs from bottom to top
+             css-loader Runs (First)
+             1.Loaders run bottom → up, so: css-loader runs first
+             2.Reads the CSS
+             Sees .button
+             3.Because modules: true, it:
+             Renames class to something unique
+             .button__x7a92
+             4.Converts CSS into JavaScript
+
+             5.Exports this object:
+             {
+               button: "button__x7a92"
+             }
+             Now your styles variable becomes:
+             styles.button === "button__x7a92"
+
+
+             style-loader Runs
+
+             Now style-loader runs.
+             It:
+             Takes the processed CSS
+             Creates a <style> tag
+             Injects it into your HTML
+             <style>
+             .button__x7a92 {
+               color: red;
+             }
+             </style>
+
+             You import CSS
+                   ↓
+             Webpack sees .module.css
+                   ↓
+             css-loader makes class names unique
+                   ↓
+             style-loader injects CSS into page
+                   ↓
+             Browser applies styles
+
+             ***********************************
+
+             Why This Is Powerful
+             Without CSS Modules:
+             All classes are global
+             Naming conflicts happen
+             With CSS Modules:
+             Each file has private styles
+             No conflict
+             Safer for big apps
+
+---------------------------------------------------------------------------------------------------
+
+HTML Webpack Plugin
+
+html-webpack-plugin is a Webpack plugin that automatically generates an HTML file and injects your bundled JavaScript (and CSS) into it.
+Without it, you would have to manually add <script> tags for every bundle Webpack creates.
+
+1️⃣ Why It Is Needed
+Webpack builds files like:
+dist/
+   main.8f3d2.js
+
+   But your HTML needs to include it:
+   <script src="main.8f3d2.js"></script>
+
+The filename changes because of hashing
+
+main.a34f.js
+main.b92c.js
+main.7f3e.js
+
+because of output filename.[loadhash].ext

@@ -4,3 +4,6 @@ body{
 .hello{
     color: blueviolet;
 }
+.title {
+  font-size: 40px;
+}

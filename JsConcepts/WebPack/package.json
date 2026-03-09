@@ -99,6 +99,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "css-loader": "^7.1.4",
+    "style-loader": "^4.0.0",
     "webpack-dev-server": "^5.2.3"
   }
 }

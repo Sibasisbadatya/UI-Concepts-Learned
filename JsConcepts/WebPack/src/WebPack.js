@@ -21,3 +21,14 @@
 // | Example            | Webpack         | `npm run build`            |
 
 
+import styles from "./Webpack.module.css";
+
+console.log("STYLES WEBPACK", styles);
+
+export function WebPack() {
+  const el = document.createElement("h1");
+  el.className = styles?.title;
+  el.innerText = "Webpack Component";
+  return el;
+}
+
