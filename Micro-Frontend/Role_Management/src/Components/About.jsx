@@ -1,5 +1,6 @@
+import React, { useEffect } from "react";
+import { useLocation } from "react-router";
 export default function About() {
-  console.log("About component loaded");
 
   return (
     <div>

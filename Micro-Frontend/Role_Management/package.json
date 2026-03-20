@@ -4,19 +4,27 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "webpack serve --open --hot",
-    "build": "webpack",
+    "dev": "webpack serve --config webpack.dev.cjs --mode production --open --hot",
+    "//": "by using --hot vite recompile only changed module and --open opens the brower automatically",
+    "build": "webpack --config webpack.prod.cjs --mode production",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
     "@babel/runtime": "^7.28.6",
     "clean-webpack-plugin": "^4.0.0",
+    "copy-webpack-plugin": "^14.0.0",
     "file-loader": "^6.2.0",
     "html-loader": "^5.1.0",
     "html-webpack-plugin": "^5.6.6",
+    "mini-css-extract-plugin": "^2.10.0",
+    "optimize-css-assets-webpack-plugin": "^6.0.1",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-loadable": "^5.5.0",
+    "react-router": "^7.13.1",
+    "react-router-dom": "^7.13.1",
+    "webpack-merge": "^6.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
@@ -29,6 +37,7 @@
     "@vitejs/plugin-react": "^5.1.1",
     "babel-loader": "^10.0.0",
     "css-loader": "^7.1.4",
+    "css-minimizer-webpack-plugin": "^8.0.0",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
