@@ -12,7 +12,6 @@ const Login = () => {
     return (
         <>
            <h2 className='loginTag'>Login Page</h2>
-
             <button onClick={handleLogin}>Login</button>
         </>
     )

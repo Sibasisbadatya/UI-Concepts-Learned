@@ -4,10 +4,10 @@ import './App.css'
 import { lazy } from 'react'
 import { Suspense } from 'react'
 import { Link, NavLink, Outlet } from 'react-router';
-
+import { useSelector } from 'react-redux';
 function App() {
 
-
+  const roleColor = useSelector((state) => state.role.color);
   const navStyle = ({ isActive }) => ({
     margin: isActive ? "0 10px" : "0px",
     color: isActive ? "purple" : "pink",
@@ -31,10 +31,10 @@ function App() {
         <NavLink to="/about?name=sibasis&age=24#category2" state={{ from: "Browser" }} style={navStyle}>About Info</NavLink> | {""}
         <NavLink to="/contact" style={navStyle}>Contact</NavLink> | {""}
         <NavLink to="/dashboard" style={navStyle}>Dashboard</NavLink> | {""}
-        <NavLink to="/userApp" style={navStyle}>Roles</NavLink> | {""}
-        <NavLink to="/roleApp" style={navStyle}>Users</NavLink>
+        <NavLink to="/roleApp" style={navStyle}>Roles</NavLink> | {""}
+        <NavLink to="/userApp" style={navStyle}>Users</NavLink>
       </nav>
-      <Suspense fallback={<div>Loading Component</div>}>
+      <Suspense fallback={<div >Loading Component</div>}>
         <Outlet />
       </Suspense>
     </div>

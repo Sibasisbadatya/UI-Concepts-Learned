@@ -1,14 +1,14 @@
 
-function UserList({users}) {
+function UserList({users, color}) {
   return (
     <div>
-      <h2>User App</h2>
+      <h2 style={{color:color}}>User App</h2>
 
       {users.map((user) => (
         <div key={user.id}>
-          <p>{user.name}</p>
-          <p>{user.email}</p>
-          <p>{user.role}</p>
+          <p style={{color:color}}>{user.name}</p>
+          <p style={{color:color}}>{user.email}</p>
+          <p style={{color:color}}>{user.role}</p>
         </div>
       ))}
     </div>

@@ -6,6 +6,7 @@ const CopyPlugin = require("copy-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const { ModuleFederationPlugin } = require('webpack').container;
+const deps = require("./package.json").dependencies;
 // ModuleFederationPlugin is a Webpack plugin used to share modules between different applications at runtime.
 // If you want to reuse a component from App A inside App B, normally you must:
 
@@ -41,7 +42,7 @@ module.exports = {
         //     http://localhost:3001/remoteEntry.js
         // So Webpack sets: publicPath = http://localhost:3001/
         // Then the chunk loads correctly:
-        // http://localhost:3001/927.js
+        // http://localhost:3001/927.js otherwise if it used in 3000 port as (child container), sometime main container(port 3000) try to load from 3000/927.js which is wrong.
     },
     resolve: {
         extensions: [".js", ".jsx"]
@@ -97,11 +98,14 @@ module.exports = {
             // The host application loads this file.
             // like http://localhost:3001/remoteEntry.js
             exposes: {
-                "./RoleList": "./src/components/RoleList.jsx" //1st key is module name visible to other apps and value is relative path to the file
+                "./RoleList": "./src/App.jsx", //1st key is module name visible to other apps and value is relative path to the file
+                "./RoleReducer": "./src/reducers/roleSlice.js"
             },
             shared: {
                 react: { singleton: true },
-                "react-dom": { singleton: true }
+                "react-dom": { singleton: true },
+                "react-redux": { singleton: true,requiredVersion: deps["react-redux"], },
+                "@reduxjs/toolkit": { singleton: true,requiredVersion: deps["@reduxjs/toolkit"], },
             }
         }),
         new CleanWebpackPlugin(),

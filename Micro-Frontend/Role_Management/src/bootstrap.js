@@ -1,12 +1,13 @@
 import { StrictMode, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-
 import { Navigate, RouterProvider, createBrowserRouter } from 'react-router'
-
 import { AuthProvider } from './AuthProvider.jsx'
 import { roles, users } from './data/data.js'
 import { fetchUsers } from './loaderUtils/usersLoader.js'
+import { Provider } from 'react-redux'        // ✅ ADD
+import store from './reducers/store.js'                // ✅ ADD
+
 const App = lazy(() => import('./App.jsx'))
 const Home = lazy(() => import('./Pages/Home.jsx'))
 const Contact = lazy(() => import('./Pages/Contact.jsx'))
@@ -21,78 +22,53 @@ const Login = lazy(() => import('./Components/Login.jsx'))
 const RoleList = lazy(() => import('RoleCard/RoleList'))
 const UserList = lazy(() => import('UserCard/UserList'))
 
-// the router itself controls data fetching, mutations, loading states, and error handling instead of components doing everything.
-const router = createBrowserRouter([  //it defines the router
+const router = createBrowserRouter([
     {
         path: "/",
         element: <App />,
         errorElement: <NotFound />,
         children: [
-            {
-                path: '/',
-                element: <Home />,
-            },
-            {
-                path: 'about',
-                element: <About />,
-                loader: fetchUsers
-            },
-            {
-                path: 'contact',
-                element: <Contact />
-            },
-            {
-                path: 'home',
-                element: <RedirectPage />
-            },
+            { path: '/', element: <Home /> },
+            { path: 'about', element: <About />, loader: fetchUsers },
+            { path: 'contact', element: <Contact /> },
+            { path: 'home', element: <RedirectPage /> },
             {
                 path: 'dashboard',
-                element:
-                    <ProtectedRoute>
-                        <DashLayout />
-                    </ProtectedRoute>,
+                element: <ProtectedRoute><DashLayout /></ProtectedRoute>,
                 children: [
-                    {
-                        index: true, element: <Navigate to={"profile/3180"} /> //here we can't write simply <Profile/> because if we do so then Url wil stay simply /dashboard 
-                    },
-                    {
-                        path: 'profile/:id',
-                        element: <Profile />
-                    },
-                    {
-                        path: 'setting',
-                        element: <Setting />
-                    },
+                    { index: true, element: <Navigate to={"profile/3180"} /> },
+                    { path: 'profile/:id', element: <Profile /> },
+                    { path: 'setting', element: <Setting /> },
                 ]
             },
             {
                 path: 'userApp',
-                element: <Suspense fallback="Roles Laoding">
-                    <RoleList roles={roles} />
-                </Suspense>
+                element: (
+                    <Suspense fallback="Users Loading">
+                        <UserList users={users} />
+                    </Suspense>
+                )
             },
             {
                 path: 'roleApp',
-                element: <Suspense fallback="Users Loading">
-                    <UserList users={users} />
-                </Suspense>
+                element: (
+                    <Suspense fallback="Roles Loading">
+                        <RoleList roles={roles} />
+                    </Suspense>
+                )
             },
-            {
-                path: 'login',
-                element: <Login />
-            },
-            {
-                path: '*',
-                element: <NotFound />
-            },
+            { path: 'login', element: <Login /> },
+            { path: '*', element: <NotFound /> },
         ]
     },
 ])
 
 createRoot(document.getElementById('root')).render(
     <StrictMode>
-        <AuthProvider>
-            <RouterProvider router={router} />
-        </AuthProvider>
+        <Provider store={store}>        
+            <AuthProvider>
+                <RouterProvider router={router} />
+            </AuthProvider>
+        </Provider>                    
     </StrictMode>,
 )

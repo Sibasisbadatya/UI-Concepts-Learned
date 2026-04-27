@@ -14,3 +14,25 @@
         ]
     ]
 }
+// Important
+
+// “Whenever you see .js/.jsx files → pass them through babel-loader” Mentioned in (webpack.config.cjs)
+
+
+// What babel-loader does
+
+// 👉 It acts like a bridge between:
+// Webpack
+// Babel
+// 👉 But it does NOT know HOW to transform code
+
+
+
+// 🔥 Important
+// 👉 babel-loader = vehicle
+// 👉 .babelrc = instructions (how to transform code)
+
+
+// What each part does
+// babel/preset-env
+// 👉 Converts modern JS → older JS

@@ -1,14 +1,14 @@
 import { roles } from "../data/roles";
 
-function RoleList({roles}) {
+function RoleList({roles,color}) {
   return (
     <div>
-      <h2>Role App</h2>
+      <h2>Role App Sibasis</h2>
 
       {roles.map((role) => (
         <div key={role.id}>
-          <p>{role.name}</p>
-          <p>{role.description}</p>
+          <p style={{ color: color }}>{role.name}</p>
+          <p style={{ color: color }}>{role.description}</p>
         </div>
       ))}
     </div>

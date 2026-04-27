@@ -4,6 +4,7 @@ const HtmlWebPackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const { ModuleFederationPlugin } = require('webpack').container
 const CopyPlugin = require("copy-webpack-plugin");
+const deps = require("./package.json").dependencies;
 // copy-webpack-plugin is used to copy files or folders from a source directory to the output directory (dist) without modifying them.
 // If logo.png is not imported like this:
 // import logo from "./logo.png";  like if they used in src path or in any other form
@@ -24,10 +25,216 @@ const CopyPlugin = require("copy-webpack-plugin");
 // ↓
 // import style.css  files outside this chain is ignored
 
+// Case 1: No import
+// App.js
+// function App() {
+//   return <img src="./logo.png" />;
+// }
+
+// 👉 Here:
+
+// You wrote a string "./logo.png"
+// But Webpack doesn’t understand strings as dependencies
+
+// 🔍 What Webpack sees
+// ------------------------------
+// index.js → App.js
+// 👉 That’s it
+// 👉 It does NOT see logo.png
+
+// 🧾 Build output
+// dist/
+//   main.js
+
+// ❌ logo.png missing
+// ❌ robots.txt missing
+
+
+// ✅ Case 2: With import
+// import logo from "./logo.png";
+
+// function App() {
+//   return <img src={logo} />;
+// }
+
+// dist/
+//   main.js
+//   logo.png
+
+// ✅ Solution: Copy manually
+// const CopyPlugin = require("copy-webpack-plugin");
+
+// new CopyPlugin({
+//   patterns: [
+//     { from: "public", to: "" },
+//   ],
+// });
+
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-// Withput this by help of "style-loader", "css-loader" 
-// CSS → converted to JS → injected into <style> tag in browser
-// css in the JS bundle so, to make css in separate bundle we use this plugin
+// 🧠 1. The Core Problem
+
+// When you write:
+// import "./styles.css";
+// 👉 You might think:
+// “This will create a CSS file”
+// ❌ But by default, Webpack does NOT create a .css file
+
+// 🔍 What actually happens (default behavior)
+
+// With style-loader:
+// use: ["style-loader", "css-loader"]
+// Flow:
+// styles.css
+//    ↓
+// css-loader → converts CSS → JS module
+//    ↓
+// style-loader → injects CSS into <style> tag
+
+// 📦 Final result in browser
+// ----------------------------------
+// <style>
+//   body { background: red; }
+// </style>
+
+// Original CSS
+// body {
+//   color: red;
+// }
+
+// 🔹 After css-loader
+
+// It becomes something like:
+// module.exports = "body { color: red; }";
+// 👉 So:
+
+// It’s now a JS module ✅
+// But inside → still plain CSS string
+
+// 🔹 Then style-loader runs
+// const css = require("./styles.css"); // gets string
+
+// const style = document.createElement("style");
+// style.innerHTML = css;
+
+// document.head.appendChild(style);
+
+{/* <style>
+  body { color: red; }
+</style> */}
+
+
+// ❌ Problem 1: “CSS loads after JS executes”
+// 🔍 What actually happens
+
+// Browser loads:
+{/* <script src="main.js"></script> */ }
+
+// 👉 Then:
+// JS downloads
+// JS executes
+// JS injects CSS
+
+// JS download → JS execute → inject CSS → render styles
+// ❗ Issue
+
+// 👉 Until JS runs:
+
+// No styles applied
+// Page looks broken
+
+// 👉 This causes:
+
+// FOUC (Flash of Unstyled Content)
+
+
+// ❌ Problem 2: “No separate file → no caching”
+// 🔍 Without plugin
+
+// main.js contains:
+//   JS + CSS mixed
+
+// ❗ What happens
+
+// Even if ONLY CSS changes:
+
+// 👉 main.js hash changes
+// 👉 Browser must re-download entire JS
+
+// | Change      | Result              |
+// | ----------- | ------------------- |
+// | CSS changed | JS re-downloaded ❌  |
+// | JS changed  | CSS re-downloaded ❌ |
+
+
+// ❌ Problem 3: “Slower first render”
+// 🔍 Why?
+// Because CSS is not available immediately
+// // With style-loader:
+// HTML loads
+// ↓
+// JS loads
+// ↓
+// JS runs
+// ↓
+// CSS injected
+// ↓
+// UI styled
+
+// ❗ Delay happens here
+
+// 👉 Rendering waits for JS execution
+
+// Result
+// blank / unstyled UI initially
+// slower visual load
+
+
+// ✅ Now compare with MiniCssExtractPlugin
+// 🔥 New flow
+{/* <link rel="stylesheet" href="main.css" />
+<script src="main.js"></script> */}
+
+// CSS download → applied immediately
+// JS download → executes
+
+// 🔥 What the browser actually does
+// Step-by-step timeline
+
+// 1. HTML loads
+// 2. Browser sees <link rel="stylesheet">
+// 3. Starts downloading CSS immediately
+// 4. Browser sees <script>
+// 5. Starts downloading JS
+
+// 📊 Visual comparison
+// ✅ With MiniCssExtractPlugin
+
+// HTML
+//  ↓
+// CSS download (parallel)
+//  ↓
+// CSS applied early ✅
+//  ↓
+// JS executes
+//  ↓
+// UI already styled
+
+// ❌ Without plugin (style-loader)
+// HTML
+//  ↓
+// JS download
+//  ↓
+// JS executes
+//  ↓
+// CSS injected
+//  ↓
+// UI becomes styled (late)
+
+// 🚨 Why this matters
+// Without plugin:
+// Page may show unstyled content first (FOUC)
+// With plugin:
+// Page is styled as soon as possible
 
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 // optimize-css-assets-webpack-plugin is a Webpack plugin used to minimize (compress) CSS files in the production build.
@@ -141,14 +348,39 @@ module.exports = {
     //     .js
     //     .json
     //     .wasm
+
+    // Without this config
+
+    // You must write full imports:
+    // import App from "./App.js";   ❌ required
+    // import Home from "./Home.jsx"; ❌ required
     module: {
         // module is a Webpack configuration section that defines how different file types should be processed.
         rules: [
             {
                 test: /\.(js|jsx)$/,
+                // “Apply this rule to files ending with .js or .jsx”
                 exclude: /node_modules/,
+                // “Do NOT apply this rule to files inside node_modules”
                 use: {
                     loader: "babel-loader"
+                // “Use Babel to process these files”
+                //     🧠 What Babel does
+
+                // 👉 Babel converts modern JS → older JS
+                // // Modern JS
+                // const greet = () => console.log("Hi");
+                // // Older JS (browser compatible)
+                // var greet = function () {
+                // console.log("Hi");
+                // };
+                // ⚛️ React example (important)
+
+                // // JSX
+                // const App = () => <h1>Hello</h1>;
+
+                // Babel converts to:
+                // const App = () => React.createElement("h1", null, "Hello");
                 }
             },
             {
@@ -169,22 +401,22 @@ module.exports = {
                 // Normally JavaScript cannot import CSS.
                 // When Webpack sees this import:
 
-                    // It sends the file to css-loader
-                    // css-loader parses the CSS
-                    // It converts it into a JavaScript module
+                // It sends the file to css-loader
+                // css-loader parses the CSS
+                // It converts it into a JavaScript module
 
-                    // CSS
-                    // .container {
-                    //     color: red;
-                    //     }
+                // CSS
+                // .container {
+                //     color: red;
+                //     }
 
-                    // Converted JS Module (simplified)
-                    // module.exports = ".container { color: red; }"; //Now webpack can bundle it properly
+                // Converted JS Module (simplified)
+                // module.exports = ".container { color: red; }"; //Now webpack can bundle it properly
 
-                    // Resolves @import Statements
-                    //     css-loader processes CSS imports just like JS imports.
+                // Resolves @import Statements
+                //     css-loader processes CSS imports just like JS imports.
 
-                    // also converts .title  →  App_title__3sd92 if modules:true would have there
+                // also converts .title  →  App_title__3sd92 if modules:true would have there
 
                 // style-loader
                 //     Injects the CSS into the browser DOM using <style> tags.
@@ -261,7 +493,7 @@ module.exports = {
             filename: "remoteEntry.js",
             remotes: {
                 "RoleCard": "roleComponent@http://localhost:3001/remoteEntry.js", //key is local alias used inside this app
-                "UserCard": "userComponent@http://localhost:3002/remoteEntry.js"
+                "UserCard": "userComponent@http://localhost:3002/remoteEntry.js",
             },
             // If the remote app exposes something like:
             // exposes: {
@@ -272,27 +504,50 @@ module.exports = {
             // import RoleList from "RoleCard/RoleList";
             shared: {
                 react: { singleton: true, },
-                "react-dom": { singleton: true }
+                "react-dom": { singleton: true },
+                "react-redux": { singleton: true, requiredVersion: deps["react-redux"], },
+                "@reduxjs/toolkit": { singleton: true, requiredVersion: deps["@reduxjs/toolkit"], },
             }
-                // shared → Share libraries between host and remote apps.
-                // singleton: true → Ensure only one instance of React/ReactDOM exists across all micro-frontends.
-                // eager: true → Load the shared library immediately at startup, not lazily.
-                // Without sharing React as a singleton, host and remote may load separate React copies, which can cause errors like:
-                // Invalid hook call
-                // Hooks can only be called inside the body of a function component
-                // Why throws error
-                
-                // React internally tracks hooks using its own instance.
-                // Component rendered by React A
-                // Hooks belong to React B
+            // shared → Share libraries between host and remote apps.
+            // singleton: true → Ensure only one instance of React/ReactDOM exists across all micro-frontends.
+            // eager: true → Load the shared library immediately at startup, not lazily.
+            // Without sharing React as a singleton, host and remote may load separate React copies, which can cause errors like:
+            // Invalid hook call
+            // Hooks can only be called inside the body of a function component
+            // Why throws error
 
-                // React cannot track the hooks correctly, so it throws:
-                // Invalid hook call
-                // Hooks can only be called inside the body of a function component
-                
-                // ****** IMPORTANT ********
-                //  react: { singleton: true,eager:true }, this eager:true is not required if asynchronous import is there in main entry file (main.js)
+            // React internally tracks hooks using its own instance.
+            // Component rendered by React A
+            // Hooks belong to React B
 
+            // React cannot track the hooks correctly, so it throws:
+            // Invalid hook call
+            // Hooks can only be called inside the body of a function component
+
+            // ****** IMPORTANT ********
+            //  react: { singleton: true,eager:true }, this eager:true is not required if asynchronous import is there in main entry file (main.js)
+
+
+            // "react-redux": { singleton: true, requiredVersion: deps["react-redux"] },
+            // "@reduxjs/toolkit": { singleton: true, requiredVersion: deps["@reduxjs/toolkit"] },
+
+            // Without singleton
+
+            // Host → react-redux v8
+            // Remote → react-redux v8 (separate copy)
+            // 👉 Result:
+
+            // Two different React contexts ❌
+            // useSelector won’t read correct store ❌
+
+            // ✅ requiredVersion
+            // requiredVersion: deps["react-redux"]
+
+            // 👉 Ensures:
+
+            // “Use this version (from package.json)”
+            // ✔ Avoids version conflicts
+            // ✔ Keeps compatibility
         })
     ],
     optimization: {
@@ -317,6 +572,7 @@ module.exports = {
         // dist/
         //     main.js  (1.5MB)
         // With splitChunks
+        // -----------------------
 
         // Webpack splits the code into multiple bundles.
         // dist/

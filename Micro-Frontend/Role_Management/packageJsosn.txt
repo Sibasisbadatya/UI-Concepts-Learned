@@ -1,0 +1,79 @@
+"scripts": {
+  "dev": "webpack serve --config webpack.dev.cjs --mode development --open --hot",
+  "build": "webpack --config webpack.prod.cjs --mode production",
+  "lint": "eslint ."
+}
+
+
+webpack serve
+-------------------------------------
+This starts Webpack Dev Server.
+
+It does 2 jobs:
+1. Build your app
+
+Webpack reads:
+JS
+JSX
+CSS
+images
+HTML
+and bundles them.
+
+2. Serve your app in browser
+It starts a local server like:http://localhost:3000
+
+
+--config webpack.dev.cjs
+---------------------------------------
+This tells webpack:
+Use webpack.dev.cjs as config file
+
+Why needed?
+Because webpack looks for default config names like:  {and development and production need different behavior.}
+
+webpack.config.js
+But your project has:
+
+webpack.dev.cjs
+webpack.prod.cjs
+
+So you must tell webpack which one to use.
+
+--open
+-------------------------------------------
+This tells webpack:
+
+Open browser automatically after server starts
+
+Without it:
+
+server starts
+you manually open browser
+
+
+--hot
+-------------------------------
+This enables Hot Module Replacement (HMR).
+This is one of the biggest benefits in development.
+What is HMR?
+------------
+Normally when you change code, browser refreshes full page.
+
+That means:
+
+whole page reloads
+app re-renders
+state resets
+slower experience
+
+HMR avoids full reload.
+
+Instead:
+Only the changed module is replaced live
+
+Example:
+
+You change only: <Button />
+Webpack updates only that changed module.
+Not whole app.
